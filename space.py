@@ -1,7 +1,8 @@
 spaces = [
-    {'id': 1, 'name': 'Помещение A', 'price': 5000, 'availability': True, 'rating': 4.5, 'added_at': '2024-01-01'},
-    {'id': 2, 'name': 'Помещение B', 'price': 7000, 'availability': True, 'rating': 4.8, 'added_at': '2024-02-01'}
+    {'id': 1, 'name': 'Помещение A', 'price': 5000, 'availability': True, 'rating': 4.5, 'area': 100, 'added_at': '2024-01-01'},
+    {'id': 2, 'name': 'Помещение B', 'price': 7000, 'availability': True, 'rating': 4.8, 'area': 150, 'added_at': '2024-02-01'}
 ]
+
 def view_available_spaces():
     available_spaces = [space for space in spaces if space['availability']]
     return available_spaces
@@ -21,13 +22,14 @@ def view_booking_history(user):
     else:
         print("История бронирований пуста")
 
-def add_space(id, name, price, rating):
+def add_space(id, name, price, rating, area):
     new_space = {
         'id': id,
         'name': name,
         'price': price,
         'availability': True,
         'rating': rating,
+        'area': area,
         'added_at': '2024-12-01'
     }
     spaces.append(new_space)
@@ -38,7 +40,7 @@ def remove_space(space_id):
     spaces = [space for space in spaces if space['id'] != space_id]
     print(f"Помещение с ID {space_id} успешно удалено")
 
-def edit_space(space_id, name=None, price=None, rating=None):
+def edit_space(space_id, name=None, price=None, rating=None, area=None):
     for space in spaces:
         if space['id'] == space_id:
             if name:
@@ -47,9 +49,12 @@ def edit_space(space_id, name=None, price=None, rating=None):
                 space['price'] = price
             if rating:
                 space['rating'] = rating
+            if area:
+                space['area'] = area
             print(f"Помещение с ID {space_id} успешно обновлено")
             return
     print("Помещение не найдено")
+
 def filter_spaces(criteria):
     return list(filter(criteria, spaces))
 
@@ -61,7 +66,7 @@ def format_spaces(spaces):
         print("Нет доступных помещений.")
     else:
         for space in spaces:
-            print(f"ID: {space['id']}, Название: {space['name']}, Цена: {space['price']}, Рейтинг: {space['rating']}, Доступность: {'Да' if space['availability'] else 'Нет'}")
+            print(f"ID: {space['id']}, Название: {space['name']}, Цена: {space['price']}, Рейтинг: {space['rating']}, Площадь: {space['area']} м², Доступность: {'Да' if space['availability'] else 'Нет'}")
 
 def cancel_booking(user, space_id):
     for space in spaces:

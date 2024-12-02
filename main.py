@@ -1,7 +1,6 @@
 from user import user_menu
 from admin import admin_menu
-from user_manager import create_user, delete_user, edit_user, users  # Импортируем пользователей
-
+from user_manager import create_user, delete_user, edit_user, users
 def main():
     while True:
         current_user = None

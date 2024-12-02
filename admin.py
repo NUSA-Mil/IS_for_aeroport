@@ -16,7 +16,7 @@ def analyze_statistics():
 
 
 def admin_menu():
-    def add_space_wrapper():
+    def add_space():
         id = int(safe_input("Введите ID: ", lambda x: x.isdigit(), "Пожалуйста, введите число."))
         name = safe_input("Введите название: ", lambda x: len(x) > 0, "Пожалуйста, введите название.")
         price = int(safe_input("Введите цену: ", lambda x: x.isdigit(), "Пожалуйста, введите число."))
@@ -24,11 +24,11 @@ def admin_menu():
             safe_input("Введите рейтинг: ", lambda x: x.replace('.', '', 1).isdigit(), "Пожалуйста, введите число."))
         add_space(id, name, price, rating)
 
-    def remove_space_wrapper():
+    def remove_space():
         space_id = int(safe_input("Введите ID помещения: ", lambda x: x.isdigit(), "Пожалуйста, введите число."))
         remove_space(space_id)
 
-    def edit_space_wrapper():
+    def edit_space():
         space_id = int(safe_input("Введите ID помещения: ", lambda x: x.isdigit(), "Пожалуйста, введите число."))
         name = input("Введите новое название (или оставьте пустым): ")
         price = input("Введите новую цену (или оставьте пустым): ")
@@ -38,7 +38,7 @@ def admin_menu():
     def view_statistics():
         analyze_statistics()
 
-    def create_user_wrapper():
+    def create_user():
         username = safe_input("Введите имя пользователя: ", lambda x: len(x) > 0,
                               "Пожалуйста, введите имя пользователя.")
         password = safe_input("Введите пароль: ", lambda x: len(x) > 0, "Пожалуйста, введите пароль.")
@@ -46,12 +46,12 @@ def admin_menu():
                           "Пожалуйста, введите 'user' или 'admin'.")
         create_user(username, password, role)
 
-    def delete_user_wrapper():
+    def delete_user():
         username = safe_input("Введите имя пользователя для удаления: ", lambda x: len(x) > 0,
                               "Пожалуйста, введите имя пользователя.")
         delete_user(username)
 
-    def edit_user_wrapper():
+    def edit_user():
         username = safe_input("Введите имя пользователя для редактирования: ", lambda x: len(x) > 0,
                               "Пожалуйста, введите имя пользователя.")
         new_password = input("Введите новый пароль (или оставьте пустым): ")
@@ -63,13 +63,13 @@ def admin_menu():
         running = False
 
     actions = {
-        1: add_space_wrapper,
-        2: remove_space_wrapper,
-        3: edit_space_wrapper,
+        1: add_space,
+        2: remove_space,
+        3: edit_space,
         4: view_statistics,
-        5: create_user_wrapper,
-        6: delete_user_wrapper,
-        7: edit_user_wrapper,
+        5: create_user,
+        6: delete_user,
+        7: edit_user,
         8: logout
     }
 
