@@ -1,84 +1,86 @@
-from space import add_space as global_add_space, remove_space as global_remove_space, edit_space as global_edit_space, spaces
-from utilis import safe_input
-from user_manager import create_user, delete_user, edit_user, users
+from user import BaseUser
+from space import SpaceManager, Space
 
-def analyze_statistics():
-    total_bookings = sum([len(user['history']) for user in users if user['role'] == 'user'])
+class Admin(BaseUser):
+    def __init__(self, user_manager):
+        super().__init__('admin', 'adminpassword')  # Пример логина и пароля
+        self.user_manager = user_manager
+        self.space_manager = SpaceManager()  # Создаем экземпляр SpaceManager
 
-    booked_spaces = [space for space in spaces if not space['availability']]
-    if booked_spaces:
-        avg_cost = sum([space['price'] for space in booked_spaces]) / len(booked_spaces)
-        print(f"Общее количество бронирований: {total_bookings}")
-        print(f"Средняя стоимость бронирований: {avg_cost:.2f}")
-    else:
-        print("Данных нет")
+    def admin_menu(self):
+        actions = {
+            1: self.add_space,
+            2: self.remove_space,
+            3: self.edit_space,
+            4: self.view_statistics,
+            5: self.create_user_action,
+            6: self.delete_user_action,
+            7: self.edit_user_action,
+            8: self.logout  # Добавляем возможность выхода
+        }
 
-def admin_menu():
-    def add_space_action():
-        id = int(safe_input("Введите ID: ", lambda x: x.isdigit(), "Пожалуйста, введите число."))
-        name = safe_input("Введите название: ", lambda x: len(x) > 0, "Пожалуйста, введите название.")
-        price = int(safe_input("Введите цену: ", lambda x: x.isdigit(), "Пожалуйста, введите число."))
-        rating = float(safe_input("Введите рейтинг: ", lambda x: x.replace('.', '', 1).isdigit(), "Пожалуйста, введите число."))
-        area = float(safe_input("Введите площадь (м²): ", lambda x: x.replace('.', '', 1).isdigit(), "Пожалуйста, введите число."))
-        global_add_space(id, name, price, rating, area)
+        while True:
+            print("1. Добавить помещение")
+            print("2. Удалить помещение")
+            print("3. Редактировать помещение")
+            print("4. Просмотр и анализ статистики")
+            print("5. Создать пользователя")
+            print("6. Удалить пользователя")
+            print("7. Редактировать пользователя")
+            print("8. Выйти из аккаунта")
+            choice = int(input("Выберите действие: "))
+            action = actions.get(choice, lambda: print("Неверный выбор"))
+            if action() is False:  # Если logout вернул False, выходим из меню
+                break
 
-    def remove_space_action():
-        space_id = int(safe_input("Введите ID помещения: ", lambda x: x.isdigit(), "Пожалуйста, введите число."))
-        global_remove_space(space_id)
+    def add_space(self):
+        name = input("Введите название помещения: ")
+        price = float(input("Введите цену помещения: "))
+        rating = float(input("Введите рейтинг помещения: "))
+        area = float(input("Введите площадь помещения: "))
+        new_space = Space(len(self.space_manager.spaces) + 1, name, price, rating, area)
+        self.space_manager.spaces.append(new_space)
+        print(f"Помещение '{name}' успешно добавлено.")
 
-    def edit_space_action():
-        space_id = int(safe_input("Введите ID помещения: ", lambda x: x.isdigit(), "Пожалуйста, введите число."))
-        name = input("Введите новое название (или оставьте пустым): ")
-        price = input("Введите новую цену (или оставьте пустым): ")
-        rating = input("Введите новый рейтинг (или оставьте пустым): ")
-        area = input("Введите новую площадь (или оставьте пустым): ")
-        global_edit_space(space_id, name if name else None, int(price) if price else None, float(rating) if rating else None, float(area) if area else None)
+    def remove_space(self):
+        space_id = int(input("Введите ID помещения для удаления: "))
+        self.space_manager.spaces = [space for space in self.space_manager.spaces if space.id != space_id]
+        print(f"Помещение с ID {space_id} успешно удалено.")
 
-    def view_statistics():
-        analyze_statistics()
+    def edit_space(self):
+        space_id = int(input("Введите ID помещения для редактирования: "))
+        for space in self.space_manager.spaces:
+            if space.id == space_id:
+                space.name = input("Введите новое название помещения: ")
+                space.price = float(input("Введите новую цену помещения: "))
+                space.rating = float(input("Введите новый рейтинг помещения: "))
+                space.area = float(input("Введите новую площадь помещения: "))
+                print(f"Помещение с ID {space_id} успешно обновлено.")
+                return
+        print("Помещение не найдено.")
 
-    def create_user_action():
-        username = safe_input("Введите имя пользователя: ", lambda x: len(x) > 0, "Пожалуйста, введите имя пользователя.")
-        password = safe_input("Введите пароль: ", lambda x: len(x) > 0, "Пожалуйста, введите пароль.")
-        role = safe_input("Введите роль (user/admin): ", lambda x: x in ['user', 'admin'], "Пожалуйста, введите 'user' или 'admin'.")
-        create_user(username, password, role)
+    def view_statistics(self):
+        total_spaces = len(self.space_manager.spaces)
+        available_spaces = len([space for space in self.space_manager.spaces if space.availability])
+        print(f"Всего помещений: {total_spaces}")
+        print(f"Доступных помещений: {available_spaces}")
 
-    def delete_user_action():
-        username = safe_input("Введите имя пользователя для удаления: ", lambda x: len(x) > 0, "Пожалуйста, введите имя пользователя.")
-        delete_user(username)
+    def create_user_action(self):
+        username = input("Введите имя пользователя: ")
+        password = input("Введите пароль: ")
+        role = input("Введите роль (user/admin): ")
+        self.user_manager.create_user(username, password)
 
-    def edit_user_action():
-        username = safe_input("Введите имя пользователя для редактирования: ", lambda x: len(x) > 0, "Пожалуйста, введите имя пользователя.")
-        new_password = input("Введите новый пароль (или оставьте пустым): ")
-        new_role = input("Введите новую роль (или оставьте пустым): ")
-        edit_user(username, new_password if new_password else None, new_role if new_role else None)
+    def delete_user_action(self):
+        username = input("Введите имя пользователя для удаления: ")
+        self.user_manager.delete_user(username)
 
-    def logout():
-        nonlocal running
-        running = False
+    def edit_user_action(self):
+        username = input("Введите имя пользователя для редактирования: ")
+        new_password = input("Введите новый пароль (оставьте пустым, если не хотите менять): ")
+        new_role = input("Введите новую роль (оставьте пустым, если не хотите менять): ")
+        self.user_manager.edit_user(username, new_password if new_password else None, new_role if new_role else None)
 
-    actions = {
-        1: add_space_action,
-        2: remove_space_action,
-        3: edit_space_action,
-        4: view_statistics,
-        5: create_user_action,
-        6: delete_user_action,
-        7: edit_user_action,
-        8: logout
-    }
-
-    running = True
-    while running:
-        print("1. Добавить помещение")
-        print("2. Удалить помещение")
-        print("3. Редактировать помещение")
-        print("4. Просмотр и анализ статистики")
-        print("5. Создать пользователя")
-        print("6. Удалить пользователя")
-        print("7. Редактировать пользователя")
-        print("8. Выйти из аккаунта")
-
-        choice = int(safe_input("Выберите действие: ", lambda x: x.isdigit(), "Пожалуйста, введите число."))
-        action = actions.get(choice, lambda: print("Неверный выбор"))
-        action()
+    def logout(self):
+        print(f"{self.username} вышел из системы.")
+        return False  # Возвращаем False для выхода из меню

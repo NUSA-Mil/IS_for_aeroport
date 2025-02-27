@@ -1,60 +1,73 @@
-from space import view_available_spaces, book_space as global_book_space, view_booking_history, filter_spaces, sort_spaces, format_spaces, cancel_booking as global_cancel_booking, spaces
-from utilis import safe_input
+from space import SpaceManager
 
-def user_menu(current_user):
-    def view_spaces():
-        available_spaces = view_available_spaces()
-        format_spaces(available_spaces)
+class BaseUser:
+    def __init__(self, username, password):
+        self.username = username
+        self.password = password
 
-    def book_space_action():
-        space_id = int(safe_input("Введите ID помещения: ", lambda x: x.isdigit(), "Пожалуйста, введите число."))
-        global_book_space(current_user, space_id)
+    def logout(self):
+        print(f"{self.username} вышел из системы.")
+        return False
 
-    def view_history():
-        view_booking_history(current_user)
+class User(BaseUser):
+    def __init__(self, username, password):
+        super().__init__(username, password)
+        self.role = 'user'
+        self.history = []
 
-    def sort_spaces_action():
-        key = safe_input("Введите критерий сортировки (price, rating): ", lambda x: x in ['price', 'rating'], "Пожалуйста, введите 'price' или 'rating'.")
-        reverse = safe_input("Сортировать по убыванию? (y/n): ", lambda x: x in ['y', 'n'], "Пожалуйста, введите 'y' или 'n'.") == 'y'
-        sorted_spaces = sort_spaces(lambda space: space[key], reverse)
-        format_spaces(sorted_spaces)
+    def user_menu(self, user_manager):
+        space_manager = SpaceManager()  # Инициализируем SpaceManager здесь
+        actions = {
+            1: space_manager.view_available_spaces,
+            2: lambda: self.book_space_action(space_manager),  # Передаем space_manager
+            3: self.view_history,
+            4: lambda: self.sort_spaces_action(space_manager),  # Исправлено
+            5: lambda: self.filter_spaces_action(space_manager),  # Исправлено
+            6: lambda: self.cancel_booking_action(space_manager),  # Передаем space_manager
+            7: self.logout
+        }
 
-    def filter_spaces_action():
-        min_price = int(safe_input("Введите минимальную цену: ", lambda x: x.isdigit(), "Пожалуйста, введите число."))
-        max_price = int(safe_input("Введите максимальную цену: ", lambda x: x.isdigit(), "Пожалуйста, введите число."))
-        criteria = lambda space: min_price <= space['price'] <= max_price
-        filtered_spaces = filter_spaces(criteria)
-        format_spaces(filtered_spaces)
+        while True:
+            print(f"Добро пожаловать, {self.username}!")
+            print("1. Просмотр доступных помещений")
+            print("2. Бронирование помещения")
+            print("3. Просмотр истории бронирований")
+            print("4. Сортировка помещений")
+            print("5. Фильтрация помещений")
+            print("6. Отмена бронирования")
+            print("7. Выйти из аккаунта")
+            choice = int(input("Выберите действие: "))
+            action = actions.get(choice, lambda: print("Неверный выбор"))
+            if action() is False:  # Если logout вернул False, выходим из меню
+                break
 
-    def cancel_booking_action():
-        space_id = int(safe_input("Введите ID помещения: ", lambda x: x.isdigit(), "Пожалуйста, введите число."))
-        global_cancel_booking(current_user, space_id)
+    def book_space_action(self, space_manager):
+        space_id = int(input("Введите ID помещения для бронирования: "))
+        space_manager.book_space(self, space_id)  # Передаем текущего пользователя
 
-    def logout():
-        nonlocal running
-        running = False
+    def cancel_booking_action(self, space_manager):
+        space_id = int(input("Введите ID помещения для отмены бронирования: "))
+        space_manager.cancel_booking(self, space_id)  # Передаем текущего пользователя
 
-    actions = {
-        1: view_spaces,
-        2: book_space_action,
-        3: view_history,
-        4: sort_spaces_action,
-        5: filter_spaces_action,
-        6: cancel_booking_action,
-        7: logout
-    }
+    def view_history(self):
+        if self.history:
+            print("Ваша история бронирований:", ", ".join(self.history))
+        else:
+            print("История бронирований пуста.")
 
-    running = True
-    while running:
-        print(f"Добро пожаловать, {current_user['username']}!")
-        print("1. Просмотр доступных помещений")
-        print("2. Бронирование помещения")
-        print("3. Просмотр истории бронирований")
-        print("4. Сортировка помещений")
-        print("5. Фильтрация помещений")
-        print("6. Отмена бронирования")
-        print("7. Выйти из аккаунта")
+    def sort_spaces_action(self, space_manager):
+        key = input("Введите ключ для сортировки (name, price, rating, area): ")
+        order = input("Сортировать по убыванию? (yes/no): ").strip().lower() == 'yes'
+        sorted_spaces = space_manager.sort_spaces(key, reverse=order)
+        for space in sorted_spaces:
+            print(f"ID: {space.id}, Название: {space.name}, Цена: {space.price}, Рейтинг: {space.rating}, Площадь: {space.area} м²")
 
-        choice = int(safe_input("Выберите действие: ", lambda x: x.isdigit(), "Пожалуйста, введите число."))
-        action = actions.get(choice, lambda: print("Неверный выбор"))
-        action()
+    def filter_spaces_action(self, space_manager):
+        min_price = float(input("Введите минимальную цену: "))
+        max_price = float(input("Введите максимальную цену: "))
+        filtered_spaces = space_manager.filter_spaces(min_price, max_price)
+        if filtered_spaces:
+            for space in filtered_spaces:
+                print(f"ID: {space.id}, Название: {space.name}, Цена: {space.price}, Рейтинг: {space.rating}, Площадь: {space.area} м²")
+        else:
+            print("Нет помещений, соответствующих вашим критериям.")
