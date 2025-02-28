@@ -1,11 +1,13 @@
+from data_manager import DataManager
 from user import BaseUser
 from space import SpaceManager, Space
 
 class Admin(BaseUser):
     def __init__(self, user_manager):
-        super().__init__('admin', 'adminpassword')  # Пример логина и пароля
+        super().__init__('admin', 'adminpassword', role='admin')  # Указываем роль
+        self.data_manager = DataManager(user_manager)
         self.user_manager = user_manager
-        self.space_manager = SpaceManager()  # Создаем экземпляр SpaceManager
+        self.space_manager = SpaceManager()
 
     def admin_menu(self):
         actions = {
@@ -16,7 +18,9 @@ class Admin(BaseUser):
             5: self.create_user_action,
             6: self.delete_user_action,
             7: self.edit_user_action,
-            8: self.logout  # Добавляем возможность выхода
+            8: self.logout,
+            9: self.export_users,
+            10: self.import_users
         }
 
         while True:
@@ -27,11 +31,29 @@ class Admin(BaseUser):
             print("5. Создать пользователя")
             print("6. Удалить пользователя")
             print("7. Редактировать пользователя")
-            print("8. Выйти из аккаунта")
-            choice = int(input("Выберите действие: "))
-            action = actions.get(choice, lambda: print("Неверный выбор"))
-            if action() is False:  # Если logout вернул False, выходим из меню
-                break
+            print("8. Выход из аккаунта")
+            print("9. Экспортировать пользователей")
+            print("10. Импортировать пользователей")
+            choice = int(input("Выберите действие: "))
+
+            action = actions.get(choice)
+            if action:
+                if action() is False:
+                    break
+            else:
+                print("Неверный выбор")
+
+    def export_users(self):
+        if self.data_manager:
+            self.data_manager.export_users()
+        else:
+            print("DataManager не инициализирован.")
+
+    def import_users(self):
+        if self.data_manager:
+            self.data_manager.import_users()
+        else:
+            print("DataManager не инициализирован.")
 
     def add_space(self):
         name = input("Введите название помещения: ")
@@ -83,4 +105,6 @@ class Admin(BaseUser):
 
     def logout(self):
         print(f"{self.username} вышел из системы.")
-        return False  # Возвращаем False для выхода из меню
+        return False
+
+

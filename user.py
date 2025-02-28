@@ -1,9 +1,10 @@
 from space import SpaceManager
 
 class BaseUser:
-    def __init__(self, username, password):
+    def __init__(self, username, password, role='user'):
         self.username = username
         self.password = password
+        self.role = role
 
     def logout(self):
         print(f"{self.username} вышел из системы.")

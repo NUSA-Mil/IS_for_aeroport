@@ -10,7 +10,7 @@ class DataManager:
             writer.writerow(['Username', 'Password', 'Role'])
             for user in self.user_manager.users:
                 writer.writerow([user.username, user.password, user.role])
-        print(f"Данные пользователей экспортированы в {filename}.")
+        print(f"Данные пользователей экспортированы в {filename}.")
 
     def import_users(self, filename='users.csv'):
         with open(filename, mode='r') as file:
@@ -21,5 +21,5 @@ class DataManager:
                     print(f"Пропущена строка: {row} - недостаточно данных.")
                     continue
                 username, password, role = row
-                self.user_manager.create_user(username, password)
-        print(f"Данные пользователей импортированы из {filename}.")
+                self.user_manager.create_user(username, password, role)  # Создаем пользователя
+        print(f"Данные пользователей импортированы из {filename}.")
